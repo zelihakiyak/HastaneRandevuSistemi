@@ -1,0 +1,128 @@
+﻿@model HastaneRandevuSistemi.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <!-- Hata Mesajları Alanı -->
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert">
+                Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header p-0">
+                    <!-- SEKMELER (TABS) -->
+                    <ul class="nav nav-tabs nav-justified" id="loginTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="patient-tab" data-bs-toggle="tab" data-bs-target="#patient-login" type="button" role="tab" aria-controls="patient-login" aria-selected="true">
+                                <i class="bi bi-person"></i> Hasta Girişi
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="doctor-tab" data-bs-toggle="tab" data-bs-target="#doctor-login" type="button" role="tab" aria-controls="doctor-login" aria-selected="false">
+                                <i class="bi bi-person-badge"></i> Doktor Girişi
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- SEKME İÇERİKLERİ -->
+                <div class="tab-content" id="loginTabContent">
+
+                    <!-- ===================== HASTA GİRİŞ FORMU ===================== -->
+                    <div class="tab-pane fade show active p-4" id="patient-login" role="tabpanel" aria-labelledby="patient-tab">
+
+                        <form asp-action="LoginPatient" asp-controller="Account" method="post">
+                            <h4 class="text-center mb-4 text-primary">Hasta Girişi</h4>
+
+                            <div class_models"mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="hasta@email.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label"></label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label"></label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Giriş Yap</button>
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <!-- ===================== DOKTOR GİRİŞ FORMU ===================== -->
+                    <div class="tab-pane fade p-4" id="doctor-login" role="tabpanel" aria-labelledby="doctor-tab">
+
+                        <!-- DİKKAT: Bu form farklı bir action'a POST ediliyor -->
+                        <form asp-action="LoginDoctor" asp-controller="Account" method="post">
+                            <h4 class="text-center mb-4 text-success">Doktor Girişi</h4>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" placeholder="doktor@hastane.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label"></label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label"></label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success">Giriş Yap</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center bg-light">
+                    Hesabınız yok mu?
+                    <a asp-action="RegisterSelection">Hemen Kayıt Olun</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<!-- Sekme stillerini güzelleştirmek için (Opsiyonel) -->
+<style>
+    .nav-tabs .nav-link {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        color: #6c757d;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        font-weight: 500;
+    }
+
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+
+    #doctor-tab.active {
+        color: #198754;
+        border-color: #198754;
+    }
+</style>

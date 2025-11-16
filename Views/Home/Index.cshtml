@@ -1,0 +1,115 @@
+﻿
+@{
+    ViewData["Title"] = "Ana Sayfa - Hastane Randevu Sistemi";
+}
+
+<!-- =================================================== -->
+<!-- GİRİŞ YAPMAMIŞ KULLANICI (ZİYARETÇİ) EKRANI          -->
+<!-- =================================================== -->
+@if (!User.Identity.IsAuthenticated)
+{
+    <div class="container col-xxl-8 px-4 py-5">
+        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+
+            <!-- Görsel Alanı (İsteğe bağlı) -->
+            <div class="col-10 col-sm-8 col-lg-6">
+                <img src="https://placehold.co/700x450/0d6efd/ffffff?text=HastaneRandevuSistemi"
+                     class="d-block mx-lg-auto img-fluid rounded shadow"
+                     alt="Randevu Sistemi" width="700" height="500" loading="lazy">
+            </div>
+
+            <!-- Karşılama Metni ve Butonlar -->
+            <div class="col-lg-6">
+                <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">
+                    Sağlığınız için Hızlı ve Kolay Randevu
+                </h1>
+                <p class="lead">
+                    Hastane Randevu Sistemi'ne hoş geldiniz.
+                    Uzman doktorlarımızdan oluşan kadromuzla hizmetinizdeyiz.
+                    Sistemi kullanmak için lütfen giriş yapın veya yeni bir hesap oluşturun.
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+
+                    <!-- Giriş Butonu -->
+                    <a asp-controller="Account" asp-action="Login"
+                       class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
+                    </a>
+
+                    <!-- Kayıt Butonu (Seçim ekranına yönlendirir) -->
+                    <a asp-controller="Account" asp-action="RegisterSelection"
+                       class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="bi bi-person-plus"></i> Kayıt Ol
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- =================================================== -->
+<!-- GİRİŞ YAPMIŞ KULLANICI (HASTA/DOKTOR) EKRANI      -->
+<!-- =================================================== -->
+@if (User.Identity.IsAuthenticated)
+{
+    <div class_models"text-center py-5">
+
+        <!-- Kişiselleştirilmiş Karşılama -->
+        <!-- Login yaparken "Claim" eklerseniz @User.Identity.Name de yazabilirsiniz -->
+        <h1 class="display-4 fw-bold">Tekrar Hoş Geldiniz!</h1>
+        <p class="fs-4 text-muted">Randevu sisteminizi yönetmeye hazırsınız.</p>
+
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">
+                Aşağıdaki butonları kullanarak mevcut randevularınızı görüntüleyebilir
+                veya size uygun yeni bir randevu alabilirsiniz.
+            </p>
+
+            <!-- Aksiyon Butonları -->
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+
+                <!-- Randevularım (Liste) -->
+                <a asp-controller="Appointment" asp-action="Index"
+                   class="btn btn-success btn-lg px-4 gap-3">
+                    <i class="bi bi-calendar-check"></i> Randevularım
+                </a>
+
+                <!-- Randevu Al (Create) -->
+                <a asp-controller="Appointment" asp-action="Create"
+                   class="btn btn-outline-primary btn-lg px-4">
+                    <i class="bi bi-plus-circle"></i> Yeni Randevu Al
+                </a>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!-- =KAÇINILMALI: Özellik Tanıtım Kartları (Opsiyonel) -->
+<div class="container px-4 py-5" id="featured-3">
+    <h2 class="pb-2 border-bottom text-center">Neden Biz?</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="feature col text-center">
+            <div class="feature-icon-small d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-4 rounded-3 mb-3 p-3">
+                <i class_models"bi bi-people-fill"></i>
+            </div>
+            <h3 class="fs-2 text-body-emphasis">Uzman Doktorlar</h3>
+            <p>Alanında uzman ve tecrübeli doktor kadromuzla sağlığınız emin ellerde.</p>
+        </div>
+        <div class="feature col text-center">
+            <div class="feature-icon-small d-inline-flex align-items-center justify-content-center text-bg-success bg-gradient fs-4 rounded-3 mb-3 p-3">
+                <i class="bi bi-calendar2-check-fill"></i>
+            </div>
+            <h3 class="fs-2 text-body-emphasis">7/24 Kolay Randevu</h3>
+            <p>Web sitemiz üzerinden dilediğiniz zaman, dilediğiniz doktordan kolayca randevu alabilirsiniz.</p>
+        </div>
+        <div class="feature col text-center">
+            <div class="feature-icon-small d-inline-flex align-items-center justify-content-center text-bg-danger bg-gradient fs-4 rounded-3 mb-3 p-3">
+                <i class_models"bi bi-clipboard2-data-fill"></i>
+            </div>
+            <h3 class="fs-2 text-body-emphasis">Online Sonuçlar</h3>
+            <p>Tahlil ve tetkik sonuçlarınıza sistem üzerinden güvenli bir şekilde erişebilirsiniz.</p>
+        </div>
+    </div>
+</div>

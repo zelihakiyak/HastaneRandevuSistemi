@@ -1,0 +1,39 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.Models.Patient>
+
+@{
+    ViewData["Title"] = "Patients";
+}
+
+<h2>Patient List</h2>
+
+<p>
+    <a class="btn btn-primary" href="/Patient/Create">Add New Patient</a>
+</p>
+
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ad</th>
+            <th>Soyad</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.FullName</td>      
+                <td>@p.Email</td>
+                <td>@p.Phone</td>
+                <td>
+                    <a href="/Patient/Edit/@p.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="/Patient/Delete/@p.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

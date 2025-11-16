@@ -1,0 +1,129 @@
+﻿
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Book an Appointment</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h4>Step 1: Select Your Provider</h4>
+            <div class="mb-3">
+                <label>Doctor</label>
+                <select id="doctorSelect" class="form-control">
+                    <option value="">Select Doctor</option>
+                    @foreach (var doc in ViewBag.Doctors)
+                    {
+                        <option value="@doc.Id">@doc.Name - @doc.Department</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <h4>Step 2: Select Date</h4>
+            <input type="date" id="dateSelect" class="form-control p-3" />
+        </div>
+
+        <div class="col-md-4">
+            <h4>Step 3: Select Time Slot</h4>
+            <div id="slotsContainer" class="d-flex flex-wrap gap-2">
+                <p class="text-muted">Lütfen önce doktor ve tarih seçiniz.</p>
+            </div>
+
+            <button id="btnConfirm" class="btn btn-danger w-100 mt-4" style="display:none;">Confirm Appointment</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .time-slot-btn {
+        border: 1px solid #ccc;
+        background-color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 100px;
+    }
+
+        .time-slot-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .time-slot-btn.active {
+            border-color: #dc3545; /* Kırmızı çerçeve */
+            background-color: #fff5f5;
+            color: #dc3545;
+            font-weight: bold;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let selectedTime = null;
+
+            // Doktor veya Tarih değiştiğinde saatleri getir
+            $('#doctorSelect, #dateSelect').change(function () {
+                var doctorId = $('#doctorSelect').val();
+                var dateVal = $('#dateSelect').val();
+
+                if (doctorId && dateVal) {
+                    loadSlots(doctorId, dateVal);
+                }
+            });
+
+            function loadSlots(doctorId, date) {
+                $('#slotsContainer').html('<p>Yükleniyor...</p>');
+
+                $.ajax({
+                    url: '/Appointment/GetAvailableSlots',
+                    type: 'GET',
+                    data: { doctorId: doctorId, dateStr: date },
+                    success: function (data) {
+                        $('#slotsContainer').empty();
+
+                        if(data.length === 0) {
+                             $('#slotsContainer').html('<div class="alert alert-warning">Boş randevu saati bulunamadı.</div>');
+                             return;
+                        }
+
+                        // Gelen saatleri buton olarak ekle
+                        $.each(data, function (index, time) {
+                            var btn = $('<button class="time-slot-btn">' + time + '</button>');
+                            btn.click(function () {
+                                // Seçim yapıldığında class değiştir
+                                $('.time-slot-btn').removeClass('active');
+                                $(this).addClass('active');
+                                selectedTime = time;
+                                $('#btnConfirm').show(); // Onay butonunu göster
+                            });
+                            $('#slotsContainer').append(btn);
+                        });
+                    }
+                });
+            }
+
+            // Randevuyu Kaydet
+            $('#btnConfirm').click(function(){
+                var doctorId = $('#doctorSelect').val();
+                var dateVal = $('#dateSelect').val();
+
+                $.post('/Appointment/BookAppointment', {
+                    doctorId: doctorId,
+                    dateStr: dateVal,
+                    timeStr: selectedTime
+                }, function(response){
+                    if(response.success){
+                        alert("Randevu başarıyla oluşturuldu!");
+                        location.reload(); // Sayfayı yenile
+                    }
+                });
+            });
+        });
+    </script>
+}
+
