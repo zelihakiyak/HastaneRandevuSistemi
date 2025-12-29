@@ -61,6 +61,19 @@ namespace HastaneRandevuSistemi.Controllers.API
 
             return Ok(new { message = "Bölüm başarıyla silindi." });
         }
+        [HttpGet("patients")]
+        public async Task<IActionResult> GetPatients() => Ok(await _context.Patients.ToListAsync());
+
+        [HttpDelete("patients/{id}")]
+        public async Task<IActionResult> DeletePatient(int id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null) return NotFound();
+
+            _context.Patients.Remove(patient);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Hasta başarıyla silindi." });
+        }
 
     }
 }

@@ -161,5 +161,30 @@ namespace HastaneRandevuSistemi.Controllers
             TempData["SuccessMessage"] = "Bölüm başarıyla silindi.";
             return RedirectToAction(nameof(Departments));
         }
+        // -----------------------------------------------------
+        // HASTA YÖNETİMİ
+        // -----------------------------------------------------
+
+        // Tüm hastaları listeler
+        public async Task<IActionResult> Patients()
+        {
+            var patients = await _context.Patients.ToListAsync();
+            return View(patients);
+        }
+
+        // Bir hastayı siler
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePatient(int id)
+        {
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient != null)
+            {
+                _context.Patients.Remove(patient);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Hasta kaydı sistemden kalıcı olarak silindi.";
+            }
+            return RedirectToAction(nameof(Patients));
+        }
     }
 }
