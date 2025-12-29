@@ -1,0 +1,68 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.Models.Department>
+@{
+    ViewData["Title"] = "Bölüm Yönetimi";
+}
+
+<div class="max-w-2xl mx-auto py-10 px-4">
+
+    <div class="mb-10">
+        <a asp-action="Index" class="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-600 transition no-underline mb-2">
+            <i class="bi bi-arrow-left-circle text-xl"></i>
+            <span>Doktor Listesine Dön</span>
+        </a>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight">Bölüm Yönetimi</h1>
+        <p class="text-gray-500 text-sm mt-1">Sistemdeki aktif poliklinik ve departmanları buradan yönetebilirsiniz.</p>
+    </div>
+
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-12">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">Yeni Bölüm Tanımla</h3>
+        <form asp-action="CreateDepartment" method="post" class="flex flex-col md:flex-row gap-4">
+            @Html.AntiForgeryToken()
+            <div class="flex-grow">
+                <input name="name" required
+                       class="block w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all placeholder-gray-400"
+                       placeholder="Nöroloji, Dahiliye...">
+            </div>
+            <button type="submit" class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-red-700 transition shadow-lg shadow-red-100 uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Ekle</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="bg-gray-50/50 px-8 py-4 border-b border-gray-100">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Aktif Bölüm Listesi</h3>
+        </div>
+        <table class="w-full text-left">
+            <tbody class="divide-y divide-gray-100">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td class="px-8 py-12 text-center text-gray-400 italic">Henüz bir bölüm eklenmemiş.</td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-gray-50/50 transition group">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                                <span class="font-bold text-gray-800 text-lg">@item.Name</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <form asp-action="DeleteDepartment" asp-route-id="@item.Id" method="post"
+                                  onsubmit="return confirm('@item.Name bölümünü silmek istediğinize emin misiniz?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="inline-flex items-center gap-1 text-red-600 hover:text-red-800 font-black text-xs tracking-widest transition group-hover:scale-105">                                   
+                                    <span>Bölümü Sil</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

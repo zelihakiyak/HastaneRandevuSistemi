@@ -1,79 +1,111 @@
-using HastaneRandevuSistemi.Data;
+ï»¿using HastaneRandevuSistemi.Data;
+using HastaneRandevuSistemi.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using HastaneRandevuSistemi.Services; // === YENÝ EKLENDÝ === (Servisler için)
-using Microsoft.AspNetCore.Authentication.Cookies; // === YENÝ EKLENDÝ === (Cookie Auth için)
+using Microsoft.Extensions.WebEncoders;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// ------------------------------------------------------
+// MVC + API Controller DesteÄŸi
+// ------------------------------------------------------
 builder.Services.AddControllersWithViews();
 
+// API endpointâ€™leri iÃ§in zorunlu
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// ------------------------------------------------------
 // SESSION EKLE
+// ------------------------------------------------------
 builder.Services.AddSession();
 
-// Veritabaný baðlantýsý
+// ------------------------------------------------------
+// VeritabanÄ± BaÄŸlantÄ±sÄ±
+// ------------------------------------------------------
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ============================================================
-// === YENÝ EKLENDÝ: DEPENDENCY INJECTION (Servislerin Tanýtýlmasý) ===
-// ============================================================
-// Controller, IAuthService istediðinde AuthService ver:
-builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Controller, IAppointmentService istediðinde AppointmentService ver:
+// ------------------------------------------------------
+// DEPENDENCY INJECTION (Servis TanÄ±mlarÄ±)
+// ------------------------------------------------------
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 
-// ============================================================
-// === YENÝ EKLENDÝ: AUTHENTICATION (Kimlik Doðrulama Ayarlarý) ===
-// ============================================================
-// Giriþ yapma sistemi için Cookie kullanacaðýmýzý belirtiyoruz.
+// ------------------------------------------------------
+// AUTHENTICATION (Cookie AyarlarÄ±)
+// ------------------------------------------------------
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        // Kullanýcý giriþ yapmadan [Authorize] olan bir sayfaya girmek isterse 
-        // buraya yönlendirilsin:
         options.LoginPath = "/Account/Login";
-
-        // Yetkisi olmayan bir yere girmek isterse:
-        options.AccessDeniedPath = "/Account/AccessDenied";
-
-        // Cookie ömrü (30 dakika hareketsiz kalýrsa çýkýþ yap)
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-        // Kullanýcý her týkladýðýnda süreyi uzat:
-        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30); // 30 gÃ¼n boyunca hatÄ±rla
+        options.SlidingExpiration = true; // KullanÄ±cÄ± siteyi kullandÄ±kÃ§a sÃ¼re uzasÄ±n
+        options.Cookie.Name = "HealthConnectAuth";
     });
 
+builder.Services.Configure<WebEncoderOptions>(options =>
+{
+    options.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All);
+});
 
 var app = builder.Build();
 
-// Middleware
-if (!app.Environment.IsDevelopment())
+
+// ------------------------------------------------------
+// SWAGGER UI (GeliÅŸtirme OrtamÄ±nda AÃ§Ä±k)
+// ------------------------------------------------------
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
+
+// ------------------------------------------------------
+// STANDART MIDDLEWARE SIRALAMASI
+// ------------------------------------------------------
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// SESSION ORTAYA EKLENÝYOR
+// Session â†’ Authentication â†’ Authorization sÄ±rasÄ± doÄŸru
 app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// DÝKKAT: Bu sýralama çok önemlidir!
-// (Mevcut kodunuzdaki sýralama zaten doðruydu)
-app.UseAuthentication(); // Önce "Sen kimsin?" (Kimlik Doðrulama)
-app.UseAuthorization();  // Sonra "Buna yetkin var mý?" (Yetkilendirme)
 
-// Route ayarý
-// Not: Varsayýlan rotayý "Account/Login" yapmak, giriþ yapan kullanýcýlar için 
-// sonsuz döngüye neden olabilir. En iyisi ana sayfayý "Home" yapmak
-// ve [Authorize] attribute'unun kullanýcýyý Login'e yönlendirmesine izin vermektir.
+// ------------------------------------------------------
+// ROUTING
+// ------------------------------------------------------
+
+// MVC Controller route (Viewâ€™ler iÃ§in)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"); // "Patient/Login" yerine "Home/Index" olarak deðiþtirdim.
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// API Controller route (Swagger buradaki endpointleri gÃ¶rÃ¼r)
+app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    // Seed iÅŸlemini baÅŸlat
+    await DbSeeder.SeedAdminAsync(context);
+}
+
+app.Run();
 
 app.Run();

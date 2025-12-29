@@ -2,14 +2,10 @@
 using HastaneRandevuSistemi.Models;
 using HastaneRandevuSistemi.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using BCrypt.Net; 
 
 namespace HastaneRandevuSistemi.Services
 {
-    // Bu sınıf, IAuthService arayüzündeki (sözleşmedeki) tüm metotları
-    // eksiksiz olarak uygulamak zorundadır.
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _context;
@@ -20,25 +16,23 @@ namespace HastaneRandevuSistemi.Services
         }
 
         // ============================================================
-        // METOT 1: HASTA KAYIT
+        // METOT 1: HASTA KAYIT (BCrypt ile)
         // ============================================================
         public async Task<(bool IsSuccess, string Message)> RegisterPatientAsync(PatientRegisterViewModel model)
         {
-            // E-posta veya TC zaten var mı?
             if (await _context.Patients.AnyAsync(x => x.Email == model.Email))
                 return (false, "Bu e-posta adresi zaten kayıtlı.");
 
             if (await _context.Patients.AnyAsync(x => x.IdentityNumber == model.IdentityNumber))
                 return (false, "Bu TC Kimlik numarası zaten kayıtlı.");
 
-            // Yeni Patient nesnesi oluştur
             var patient = new Patient
             {
                 FullName = model.FullName,
                 IdentityNumber = model.IdentityNumber,
                 Email = model.Email,
-                // Güvenlik: Şifreyi Hash'leyerek PasswordHash alanına kaydet
-                PasswordHash = HashPassword(model.Password)
+                // Şifreyi BCrypt ile güvenli bir şekilde hashliyoruz
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password)
             };
 
             _context.Patients.Add(patient);
@@ -48,8 +42,8 @@ namespace HastaneRandevuSistemi.Services
         }
 
         // ============================================================
-        // METOT 2: DOKTOR KAYIT
-        // ============================================================
+        // METOT 2: DOKTOR KAYIT (Admin tarafından kullanılacak)
+        // ============================================================       
         public async Task<(bool IsSuccess, string Message)> RegisterDoctorAsync(DoctorRegisterViewModel model)
         {
             if (await _context.Doctors.AnyAsync(x => x.Email == model.Email))
@@ -57,67 +51,51 @@ namespace HastaneRandevuSistemi.Services
 
             var doctor = new Doctor
             {
-                // DÜZELTME: Modelinizdeki alan adı 'FullName'
                 FullName = model.FullName,
-                Department = model.Department,
                 Email = model.Email,
-                // Güvenlik: Şifreyi Hash'leyerek PasswordHash alanına kaydet
-                PasswordHash = HashPassword(model.Password)
+                // Admin'in belirlediği şifreyi hashleyerek kaydediyoruz
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                Phone = model.Phone,
+                DepartmentId = int.Parse(model.Department)
+
             };
 
             _context.Doctors.Add(doctor);
             await _context.SaveChangesAsync();
 
-            return (true, "Doktor kaydı başarılı.");
+            return (true, "Doktor sisteme başarıyla tanımlandı.");
         }
 
         // ============================================================
-        // METOT 3: HASTA GİRİŞ DOĞRULAMA
+        // METOT 3: HASTA GİRİŞ DOĞRULAMA (BCrypt.Verify ile)
         // ============================================================
-        public async Task<Patient> ValidatePatientCredentialsAsync(LoginViewModel model)
+        public async Task<Patient?> ValidatePatientCredentialsAsync(LoginViewModel model)
         {
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.Email == model.Email);
-            if (patient == null) return null; // Kullanıcı bulunamadı
-
-            // Girilen şifreyi de hash'le
-            var passwordHash = HashPassword(model.Password);
-
-            // Veritabanındaki hash ile girilen şifrenin hash'i aynı mı?
-            if (patient.PasswordHash == passwordHash)
+            
+            // Kullanıcı varsa ve şifresi BCrypt ile doğrulanıyorsa (Verify)
+            if (patient != null && BCrypt.Net.BCrypt.Verify(model.Password, patient.PasswordHash))
             {
-                return patient; // Başarılı
+                return patient;
             }
-            return null; // Şifre yanlış
+            
+            return null;
         }
 
         // ============================================================
-        // METOT 4: DOKTOR GİRİŞ DOĞRULAMA
+        // METOT 4: DOKTOR GİRİŞ DOĞRULAMA (BCrypt.Verify ile)
         // ============================================================
-        public async Task<Doctor> ValidateDoctorCredentialsAsync(LoginViewModel model)
+        public async Task<Doctor?> ValidateDoctorCredentialsAsync(LoginViewModel model)
         {
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Email == model.Email);
-            if (doctor == null) return null; // Kullanıcı bulunamadı
-
-            var passwordHash = HashPassword(model.Password);
-
-            // Veritabanındaki hash ile girilen şifrenin hash'i aynı mı?
-            if (doctor.PasswordHash == passwordHash)
+            
+            // Kullanıcı varsa ve şifresi BCrypt ile doğrulanıyorsa (Verify)
+            if (doctor != null && BCrypt.Net.BCrypt.Verify(model.Password, doctor.PasswordHash))
             {
-                return doctor; // Başarılı
+                return doctor;
             }
-            return null; // Şifre yanlış
-        }
-
-        // ============================================================
-        // YARDIMCI METOT: ŞİFRELEME (Hashing)
-        // ============================================================
-        private string HashPassword(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
+            
+            return null;
         }
     }
 }

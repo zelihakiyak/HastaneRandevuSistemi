@@ -1,0 +1,70 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.Models.Appointment>
+@{
+    ViewData["Title"] = "Tüm Randevular";
+}
+
+<div class="max-w-6xl mx-auto py-10 px-4">
+
+    <div class="mb-10">
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight">Sistemdeki Tüm Randevular</h1>
+        <p class="text-gray-500 text-sm mt-1">Hastanede planlanmış, tamamlanmış veya iptal edilmiş tüm süreçleri buradan izleyebilirsiniz.</p>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Hasta Bilgisi</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Doktor / Bölüm</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Tarih / Saat</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Durum</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">Henüz bir randevu kaydı bulunmuyor.</td>
+                    </tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold text-xs">
+                                    @item.Patient.FullName.Substring(0, 1)
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">@item.Patient.FullName</div>
+                                    <div class="text-[10px] text-gray-400">@item.Patient.Email</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800">Dr. @item.Doctor.FullName</div>
+                            <div class="text-xs text-red-600 font-medium">@item.Doctor.Department?.Name</div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-bold text-gray-900">@item.AppointmentDate.ToShortDateString()</div>
+                            <div class="text-xs text-gray-500">@item.AppointmentTime.ToString(@"hh\:mm")</div>
+                        </td>
+
+                        <td class="px-6 py-4">
+                            @if (item.Status == AppointmentStatus.Active)
+                            {
+                                <span class="px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest">İptal</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

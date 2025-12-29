@@ -15,6 +15,27 @@ namespace HastaneRandevuSistemi.Controllers
 
         public IActionResult Index()
         {
+            // Kullanýcý giriþ yapmamýþsa genel tanýtým sayfasýný göster (veya Login'e at)
+            if (!User.Identity.IsAuthenticated)
+            {
+                return View(); // Veya return RedirectToAction("Login", "Account");
+            }
+
+            // Kullanýcý giriþ yapmýþsa rolüne göre yönlendir
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+            else if (User.IsInRole("Doctor"))
+            {
+                return RedirectToAction("Index", "Doctor");
+            }
+            else if (User.IsInRole("Patient"))
+            {
+                // Hastalarý genellikle randevu listesine veya randevu al sayfasýna atarýz
+                return RedirectToAction("Index", "Appointment");
+            }
+
             return View();
         }
 

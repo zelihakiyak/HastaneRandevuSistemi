@@ -20,3 +20,95 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+:root {
+    
+    --hc-red: #dc3545; 
+    --hc-red-dark: #b02a37;
+    --hc-radius: 0.5rem; 
+}
+
+
+.btn-primary {
+    background-color: var(--hc-red);
+    border-color: var(--hc-red);
+    font-weight: 500;
+    border-radius: var(--hc-radius);
+}
+
+    .btn-primary:hover, .btn-primary:active {
+        background-color: var(--hc-red-dark);
+        border-color: var(--hc-red-dark);
+    }
+
+    .btn-check:focus + .btn-primary, .btn-primary:focus {
+        background-color: var(--hc-red-dark);
+        border-color: var(--hc-red-dark);
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.5);
+    }
+
+.btn-outline-primary {
+    border-color: var(--hc-red);
+    color: var(--hc-red);
+    border-radius: var(--hc-radius);
+    font-weight: 500;
+}
+
+    .btn-outline-primary:hover {
+        background-color: var(--hc-red);
+        color: #fff;
+    }
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--hc-red);
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control, .form-select {
+    border-radius: var(--hc-radius);
+    padding: 0.75rem 1rem;
+}
+
+/* Giriþ/Kayýt Kartlarý için Ana Stil */
+.auth-card {
+    border: none;
+    border-radius: var(--hc-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+    .auth-card .card-header {
+        background-color: #fff;
+        border-bottom: 0;
+        padding: 2.5rem 2rem 1rem;
+        border-top-left-radius: var(--hc-radius);
+        border-top-right-radius: var(--hc-radius);
+        text-align: center;
+    }
+
+    .auth-card .card-body {
+        padding: 1rem 2.5rem 2rem;
+    }
+
+    .auth-card .card-footer {
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
+        padding: 1.5rem 2.5rem;
+        border-bottom-left-radius: var(--hc-radius);
+        border-bottom-right-radius: var(--hc-radius);
+        text-align: center;
+    }
+
+/* Login Sekmeleri (Tabs) Stili */
+.auth-tabs .nav-link {
+    border: 0;
+    color: #6c757d;
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+}
+
+    .auth-tabs .nav-link.active {
+        color: var(--hc-red);
+        border-color: var(--hc-red);
+        background-color: transparent;
+    }

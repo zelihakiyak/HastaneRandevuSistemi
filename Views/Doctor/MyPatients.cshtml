@@ -1,0 +1,61 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.ViewModels.MyPatientViewModel>
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Hastalarım";
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tighter">Hastalarım</h1>
+            <p class="text-gray-400 font-medium italic text-sm">Sistemde size kayıtlı olan tüm hastalar.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            <span class="text-gray-600 font-bold text-sm">@Model.Count() Toplam Hasta</span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50/50 border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 tracking-widest">Hasta Ad Soyad</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 tracking-widest">T.C. Kimlik No</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 tracking-widest">İletişim Numarası</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 tracking-widest">Son Randevu Tarihi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @foreach (var patient in Model)
+                {
+                    <tr class="hover:bg-gray-50/50 transition-all duration-200 group">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-11 h-11 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 flex items-center justify-center font-bold transition-colors">
+                                    @patient.FullName.Substring(0, 1)
+                                </div>
+                                <span class="font-extrabold text-gray-900 group-hover:text-red-600 transition-colors">@patient.FullName</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <span class="font-mono text-sm text-gray-600 font-medium bg-gray-50 px-3 py-1 rounded-lg">@patient.IdentityNumber</span>
+                        </td>
+                        <td class="px-8 py-5 text-gray-500 font-medium">
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-telephone text-gray-300"></i>
+                                @patient.Phone
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-gray-900">@patient.LastAppointmentDate.ToString("dd MMMM yyyy")</span>
+                                <span class="text-[10px] text-gray-400 font-medium uppercase tracking-tighter">@patient.LastAppointmentDate.ToString("dddd")</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

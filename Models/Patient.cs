@@ -17,13 +17,14 @@ namespace HastaneRandevuSistemi.Models
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        // === EN ÖNEMLÝ DEÐÝÞÝKLÝK ===
+        
         [Required]
-        public string PasswordHash { get; set; } = string.Empty; // Password -> PasswordHash
+        public string PasswordHash { get; set; } = string.Empty;
 
-        [Phone]
+        [Required(ErrorMessage = "Telefon numarasý zorunludur.")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "Telefon numarasýný 05xxxxxxxxx olarak giriniz.")]
+        [RegularExpression(@"^[0-9]*$", ErrorMessage = "Telefon numarasý sadece rakamlardan oluþmalýdýr.")]
         public string Phone { get; set; } = string.Empty;
-
         public List<Appointment> Appointments { get; set; } = new();
     }
 }

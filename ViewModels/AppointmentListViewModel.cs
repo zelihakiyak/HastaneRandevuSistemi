@@ -14,7 +14,7 @@ namespace HastaneRandevuSistemi.ViewModels
         public string DateFormatted { get; set; }
         public string TimeFormatted { get; set; }
         public string DoctorName { get; set; }
-        public string HospitalName { get; set; }
+        public string DepartmentName { get; set; }
         public string StatusClass { get; set; }
         public string StatusLabel { get; set; }
         public bool CanCancel { get; set; }

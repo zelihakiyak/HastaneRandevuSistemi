@@ -1,0 +1,82 @@
+﻿@model HastaneRandevuSistemi.ViewModels.PatientRegisterViewModel
+@{
+    ViewData["Title"] = "Hasta Kaydı";
+}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-xl border border-gray-100">
+        <div class="text-center">
+            <div class="mx-auto h-12 w-12 text-red-600 flex justify-center items-center mb-4">
+                <i class="bi bi-hospital text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight">Hasta Kaydı</h2>
+            <p class="mt-2 text-sm text-gray-500 font-medium">Hemen randevu almaya başlayın</p>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm font-bold bg-red-50 p-3 rounded-xl border border-red-100 text-center"></div>
+
+        <form class="mt-8 space-y-6" asp-action="Register" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="space-y-4">
+                @* Ad Soyad *@
+                <div>
+                    <label asp-for="FullName" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Ad Soyad</label>
+                    <input asp-for="FullName" required
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all">
+                    <span asp-validation-for="FullName" class="text-red-500 text-xs mt-1"></span>
+                </div>
+                <div>
+                    <label asp-for="IdentityNumber" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">T.C. Kimlik Numarası</label>
+                    <input asp-for="IdentityNumber" required
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all">
+                    <span asp-validation-for="IdentityNumber" class="text-red-500 text-xs mt-1"></span>
+                </div>
+                <div>
+                    <label asp-for="Phone" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Telefon Numarası</label>
+                    <input asp-for="Phone" required maxlength="11"
+                           onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                           placeholder="05xxxxxxxxx">
+                    <span asp-validation-for="Phone" class="text-red-500 text-xs mt-1"></span>
+                </div>
+                <div>
+                    <label asp-for="Email" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">E-posta Adresi</label>
+                    <input asp-for="Email" type="email" required
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all">
+                    <span asp-validation-for="Email" class="text-red-500 text-xs mt-1"></span>
+                </div>
+                <div>
+                    <label asp-for="Password" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Şifre</label>
+                    <input asp-for="Password" type="password" required
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                           placeholder="••••••••">
+                    <span asp-validation-for="Password" class="text-red-500 text-xs mt-1"></span>
+                </div>
+                <div>
+                    <label asp-for="ConfirmPassword" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Şifre (Tekrar)</label>
+                    <input asp-for="ConfirmPassword" type="password" required
+                           class="appearance-none rounded-2xl relative block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                           placeholder="••••••••">
+                    <span asp-validation-for="ConfirmPassword" class="text-red-500 text-xs mt-1"></span>
+                </div>
+            </div>
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-black rounded-2xl text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-lg shadow-red-100">
+                    Kaydı Tamamla
+                </button>
+            </div>
+        </form>
+        <div class="text-center mt-6">
+            <p class="text-sm text-gray-500">
+                Zaten hesabınız var mı?
+                <a asp-action="Login" asp-controller="Account" class="font-bold text-red-600 hover:text-red-700 transition">Giriş Yapın</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

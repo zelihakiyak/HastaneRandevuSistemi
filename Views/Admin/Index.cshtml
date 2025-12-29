@@ -1,0 +1,42 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.Models.Doctor>
+@{
+    ViewData["Title"] = "Doktor Yönetimi";
+}
+<div class="container mx-auto py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-black text-gray-900 ">Doktor Yönetimi</h1>
+        <a asp-action="CreateDoctor" class="bg-red-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-red-700 transition shadow-lg shadow-red-100">
+            <i class="bi bi-person-plus-fill mr-2"></i> Yeni Doktor Kaydet
+        </a>
+    </div>
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Ad Soyad</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">E-Posta</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Bölüm</th>
+                    <th class="px-6 py-4 text-right">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @foreach (var doc in Model)
+                {
+                    <tr class="hover:bg-gray-50/50 transition">
+                        <td class="px-6 py-4 font-bold text-gray-900">@doc.FullName</td>
+                        <td class="px-6 py-4 text-gray-600">@doc.Email</td>
+                        <td class="px-6 py-4 text-gray-600">                           
+                            @(doc.Department?.Name ?? "Bölüm Yok")
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <form asp-action="DeleteDoctor" asp-route-id="@doc.Id" method="post" class="inline" onsubmit="return confirm('Bu doktoru silmek istediğinize emin misiniz?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800 font-bold text-sm">Sil</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

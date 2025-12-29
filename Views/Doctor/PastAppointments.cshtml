@@ -1,0 +1,46 @@
+﻿@model IEnumerable<HastaneRandevuSistemi.Models.Appointment>
+@{
+    Layout = "_DoctorLayout";
+    ViewData["Title"] = "Geçmiş Randevular";
+}
+
+<div class="space-y-8">
+    <h1 class="text-3xl font-black text-gray-900 tracking-tighter">Randevu Arşivi</h1>
+
+    <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tarih</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Saat</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hasta Ad Soyad</th>
+                    <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Durum</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                @foreach (var app in Model)
+                {
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-8 py-5 font-bold text-gray-900">@app.AppointmentDate.ToString("dd MMMM yyyy")</td>
+                        <td class="px-8 py-5 text-gray-500 font-medium">@app.AppointmentTime.ToString(@"hh\:mm")</td>
+                        <td class="px-8 py-5 font-extrabold text-gray-700">@app.Patient.FullName</td>
+                        <td class="px-8 py-5 text-right">
+                            @if (app.Status == AppointmentStatus.Completed || (app.Status == AppointmentStatus.Active && app.AppointmentDate < DateTime.Today))
+                            {
+                                <span class="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase rounded-full tracking-widest">Tamamlandı</span>
+                            }
+                            else if (app.Status == AppointmentStatus.Cancelled)
+                            {
+                                <span class="px-3 py-1 bg-red-50 text-red-600 text-[10px] font-black uppercase rounded-full tracking-widest">İptal Edildi</span>
+                            }
+                            else if (app.Status == AppointmentStatus.Missed)
+                            {
+                                <span class="px-3 py-1 bg-yellow-50 text-yellow-600 text-[10px] font-black uppercase rounded-full tracking-widest">Gelmedi</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

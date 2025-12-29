@@ -22,6 +22,11 @@ namespace HastaneRandevuSistemi.ViewModels
         [Compare("Password", ErrorMessage = "Şifreler uyuşmuyor.")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
+
+        [Required(ErrorMessage = "Telefon numarası zorunludur.")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "Telefon numarasını 05xxxxxxxxx olarak giriniz.")]
+        [Display(Name = "Telefon Numarası")]
+        public string Phone { get; set; }
     }
 
     // DOKTOR KAYIT MODELİ
@@ -42,5 +47,6 @@ namespace HastaneRandevuSistemi.ViewModels
 
         [Compare("Password", ErrorMessage = "Şifreler uyuşmuyor.")]
         public string ConfirmPassword { get; set; }
+        public string Phone { get; internal set; }
     }
 }

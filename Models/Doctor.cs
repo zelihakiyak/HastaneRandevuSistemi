@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using HastaneRandevuSistemi.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace HastaneRandevuSistemi.Models
 {
     public class Doctor
     {
         [Key]
-        public int Id { get; set; } // DoctorID -> Id olarak değiştirildi (EF Core standardı)
+        public int Id { get; set; }
 
         [Required]
         public string FullName { get; set; } = string.Empty;
@@ -13,17 +14,17 @@ namespace HastaneRandevuSistemi.Models
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        // === EN ÖNEMLİ DEĞİŞİKLİK ===
-        // Düz metin şifreyi kaldırıp, şifrelenmiş (hash) halini tutuyoruz.
-        [Required]
-        public string PasswordHash { get; set; } = string.Empty; // Password -> PasswordHash
+        public string PasswordHash { get; set; } = string.Empty;
 
-        [Required]
-        public string Department { get; set; } = string.Empty;
-
-        [Required, Phone]
+        [Required(ErrorMessage = "Telefon numarası zorunludur.")]
+        [StringLength(11, MinimumLength = 11, ErrorMessage = "Telefon numarasını 05xxxxxxxxx olarak giriniz.")]
+        [RegularExpression(@"^[0-9]*$", ErrorMessage = "Telefon numarası sadece rakamlardan oluşmalıdır.")]
         public string Phone { get; set; } = string.Empty;
 
+        [Required]
+        public int DepartmentId { get; set; } // Foreign Key (Bölüm ID'si)
+
+        public Department? Department { get; set; } // Navigation Property                                                   
         public List<Appointment> Appointments { get; set; } = new();
     }
 }

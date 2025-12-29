@@ -2,10 +2,10 @@
 {
     public enum AppointmentStatus
     {
-        Active = 1,
-        Completed = 2,
-        Cancelled = 3,
-        Missed = 4
+        Active = 0,
+        Completed = 1,
+        Cancelled = 2,
+        Missed = 3
     }
     public class Appointment
     {
@@ -22,9 +22,7 @@
         public DateTime AppointmentDate { get; set; }
         public TimeSpan AppointmentTime { get; set; }
         public bool IsActive { get; set; } = true;
-/// <summary>
-/// 
-/// </summary>
+
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Active;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

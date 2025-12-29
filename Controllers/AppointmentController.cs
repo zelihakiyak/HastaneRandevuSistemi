@@ -1,71 +1,107 @@
-﻿using HastaneRandevuSistemi.Data; // Sadece SelectList için gerekebilir, gerekirse Service'den çekilir.
-using HastaneRandevuSistemi.Models;
+﻿using HastaneRandevuSistemi.Models;
 using HastaneRandevuSistemi.Services;
+using HastaneRandevuSistemi.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace HastaneRandevuSistemi.Controllers
 {
-    // [Authorize] 
+    [Authorize] // Sadece giriş yapan kullanıcılar erişebilir
     public class AppointmentController : Controller
     {
-        // ARTIK _context YOK! Sadece Service var.
         private readonly IAppointmentService _appointmentService;
-        private readonly ApplicationDbContext _context; // Sadece Dropdown doldurmak için geçici (Clean Code'da bu da service'e taşınmalı)
 
-        public AppointmentController(IAppointmentService appointmentService, ApplicationDbContext context)
+        public AppointmentController(IAppointmentService appointmentService)
         {
             _appointmentService = appointmentService;
-            _context = context; // SelectList için tutuyoruz şimdilik
         }
 
-        // 1. INDEX (LİSTELEME)
+        // ==========================================
+        // 1. RANDEVU LİSTELEME (INDEX)
+        // ==========================================
         public async Task<IActionResult> Index()
         {
-            int currentPatientId = GetCurrentPatientId();
-            var model = await _appointmentService.GetPatientAppointmentsAsync(currentPatientId);
+            int patientId = GetCurrentPatientId();
+            if (patientId == 0) return RedirectToAction("Login", "Account");
+
+            var model = await _appointmentService.GetPatientAppointmentsAsync(patientId);
             return View(model);
         }
 
-        // 2. CREATE (GET)
+        // ==========================================
+        // 2. YENİ RANDEVU ALMA (CREATE - GET)
+        // ==========================================
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            // İdealde: var doctors = await _doctorService.GetAllDoctors();
-            ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-            return View();
+            var model = new AppointmentCreateViewModel
+            {
+                // Sayfa ilk açıldığında bölümlerin (Department) dolması gerekir
+                Departments = await _appointmentService.GetAllDepartmentNamesAsync()
+            };
+            return View(model);
         }
 
-        // 2.1 CREATE (POST)
+        // ==========================================
+        // 2.1 YENİ RANDEVU KAYDETME (CREATE - POST)
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int doctorId, DateTime date, string timeStr)
+        public async Task<IActionResult> Create(AppointmentCreateViewModel model)
         {
-            // Validasyonlar
-            if (!TimeSpan.TryParse(timeStr, out TimeSpan time))
+            int patientId = GetCurrentPatientId();
+            if (patientId == 0) return RedirectToAction("Login", "Account");
+
+            // === HAFTA SONU KONTROLÜ===
+            if (model.SelectedDate.DayOfWeek == DayOfWeek.Saturday || model.SelectedDate.DayOfWeek == DayOfWeek.Sunday)
             {
-                ModelState.AddModelError("", "Geçersiz saat.");
-                ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-                return View();
+                ModelState.AddModelError("", "Hafta sonları randevu alınamaz.");
             }
 
-            int currentPatientId = GetCurrentPatientId();
-
-            // Servisi Çağır
-            var result = await _appointmentService.CreateAppointmentAsync(doctorId, currentPatientId, date, time);
-
-            if (!result.IsSuccess)
+            if (ModelState.IsValid)
             {
-                ModelState.AddModelError("", result.Message);
-                ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-                return View();
-            }
+                // Saat bilgisini TimeSpan'e dönüştür
+                if (TimeSpan.TryParse(model.SelectedSlot, out TimeSpan time))
+                {
+                    var result = await _appointmentService.CreateAppointmentAsync(
+                        model.SelectedDoctorId, patientId, model.SelectedDate, time);
 
-            TempData["SuccessMessage"] = result.Message;
-            return RedirectToAction(nameof(Index));
+                    if (result.IsSuccess)
+                    {
+                        TempData["SuccessMessage"] = result.Message;
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    TempData["ErrorMessage"] = result.Message;
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Lütfen geçerli bir saat seçiniz.");
+                }
+            }
+            model.Departments = await _appointmentService.GetAllDepartmentNamesAsync();
+
+            return View(model);
         }
 
-        // 3. AJAX (MÜSAİT SAATLER)
+        // ==========================================
+        // 3. AJAX METOTLARI (DİNAMİK YAPI)
+        // ==========================================
+
+        // Bölüm seçilince doktorları getiren metot
+        [HttpGet]
+        public async Task<JsonResult> GetDoctors(string departmentName)
+        {
+            if (string.IsNullOrEmpty(departmentName)) return Json(new List<object>());
+
+            var doctors = await _appointmentService.GetDoctorsByDepartmentNameAsync(departmentName);
+            var result = doctors.Select(d => new { id = d.Id, fullName = d.FullName });
+
+            return Json(result);
+        }
+
+        // Doktor ve Tarih seçilince müsait saatleri getiren metot
         [HttpGet]
         public async Task<IActionResult> GetAvailableSlots(int doctorId, string dateStr)
         {
@@ -76,55 +112,31 @@ namespace HastaneRandevuSistemi.Controllers
             return Json(slots);
         }
 
-        // 4. EDIT (GET)
-        [HttpGet]
-        public async Task<IActionResult> Edit(int id)
-        {
-            var appointment = await _appointmentService.GetAppointmentByIdAsync(id);
-            if (appointment == null) return NotFound();
-
-            if (appointment.PatientId != GetCurrentPatientId()) return Unauthorized();
-
-            ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name", appointment.DoctorId);
-            return View(appointment);
-        }
-
-        // 5. EDIT (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Appointment appointment)
-        {
-            int currentPatientId = GetCurrentPatientId();
-            var result = await _appointmentService.UpdateAppointmentAsync(id, appointment, currentPatientId);
-
-            if (!result.IsSuccess)
-            {
-                ModelState.AddModelError("", result.Message);
-                ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name", appointment.DoctorId);
-                return View(appointment);
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // 6. CANCEL / DELETE (İPTAL)
+        // ==========================================
+        // 4. RANDEVU İPTALİ (CANCEL)
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
-            int currentPatientId = GetCurrentPatientId();
-            bool success = await _appointmentService.CancelAppointmentAsync(id, currentPatientId);
+            int patientId = GetCurrentPatientId();
+            var result = await _appointmentService.CancelAppointmentAsync(id, patientId);
 
-            if (success) TempData["SuccessMessage"] = "Randevu iptal edildi.";
-            else TempData["ErrorMessage"] = "İptal edilemedi.";
+            if (result)
+                TempData["SuccessMessage"] = "Randevunuz başarıyla iptal edildi.";
+            else
+                TempData["ErrorMessage"] = "İptal işlemi başarısız oldu.";
 
             return RedirectToAction(nameof(Index));
         }
 
+        // ==========================================
+        // 5. YARDIMCI METOTLAR (HELPERS)
+        // ==========================================
         private int GetCurrentPatientId()
         {
-            // Test için sabit
-            return 1;
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return string.IsNullOrEmpty(userIdString) ? 0 : int.Parse(userIdString);
         }
     }
 }

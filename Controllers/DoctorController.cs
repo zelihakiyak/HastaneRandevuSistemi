@@ -2,98 +2,99 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HastaneRandevuSistemi.Models;
+using HastaneRandevuSistemi.ViewModels;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HastaneRandevuSistemi.Controllers
 {
+    [Authorize(Roles = "Doctor")]
     public class DoctorController(ApplicationDbContext _context) : Controller
     {
-        // -----------------------------------------------------
-        // REGISTER (GET)
-        // -----------------------------------------------------
-        [HttpGet]
-        public IActionResult Register()
-        {
-            return View();
-        }
+        private int GetCurrentDoctorId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
+        // 1. GELECEK RANDEVULAR (Dashboard / Index)
+        public async Task<IActionResult> Index()
+        {
+            var doctorId = GetCurrentDoctorId();
+            var today = DateTime.Today;
+
+            // Bugün ve gelecekteki randevular
+            var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId && a.AppointmentDate >= today && a.Status == AppointmentStatus.Active)
+                .OrderBy(a => a.AppointmentDate).ThenBy(a => a.AppointmentTime)
+                .ToListAsync();
+
+            return View(appointments);
+
+        }
+        // 2. GEÇMİŞ RANDEVULAR
+        public async Task<IActionResult> PastAppointments()
+        {
+            var doctorId = GetCurrentDoctorId();
+            var now = DateTime.Now;
+
+            var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId && (a.AppointmentDate < now.Date || a.Status != AppointmentStatus.Active))
+                .OrderByDescending(a => a.AppointmentDate).ThenByDescending(a => a.AppointmentTime)
+                .ToListAsync();
+
+            // View içerisinde bu listeyi dönerken:
+            // 1. Durum 'Cancelled' ise -> İptal
+            // 2. Durum 'Missed' ise -> Gelmedi
+            // 3. Durum hala 'Active' ama zamanı geçmişse -> Tamamlandı (Doktorun yükü sıfır!)
+            return View(appointments);
+        }
+        // 3. HASTALARIM
+        public async Task<IActionResult> MyPatients()
+        {
+            var doctorId = GetCurrentDoctorId();
+
+            var patients = await _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId)
+                .Select(a => new MyPatientViewModel
+                {
+                    FullName = a.Patient.FullName,
+                    IdentityNumber = a.Patient.IdentityNumber,
+                    Phone = a.Patient.Phone,
+                    LastAppointmentDate = a.AppointmentDate
+                })
+                .ToListAsync();
+
+            var distinctPatients = patients
+                .GroupBy(p => p.IdentityNumber)
+                .Select(g => g.OrderByDescending(x => x.LastAppointmentDate).First())
+                .ToList();
+
+            return View(distinctPatients);
+        }
         // -----------------------------------------------------
-        // REGISTER (POST)
+        // 4. HASTA GELMEDİ OLARAK İŞARETLE
         // -----------------------------------------------------
         [HttpPost]
-        public IActionResult Register(Doctor doctor)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAsMissed(int id)
         {
-            if (!ModelState.IsValid)
-                return View(doctor);
+            var doctorId = GetCurrentDoctorId();
 
-            // E-posta zaten var mı kontrol et
-            var existingDoctor = _context.Doctors
-                .FirstOrDefault(d => d.Email == doctor.Email);
+            // Güvenlik: Sadece giriş yapan doktorun kendi randevusunu güncellemesini sağlıyoruz
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.Id == id && a.DoctorId == doctorId);
 
-            if (existingDoctor != null)
+            if (appointment == null)
             {
-                ViewBag.Error = "Bu e-posta zaten kayıtlı!";
-                return View(doctor);
+                return NotFound();
             }
 
-            // Kaydet
-            _context.Doctors.Add(doctor);
-            _context.SaveChanges();
+            // Durumu 'Missed' (Kaçırıldı) olarak güncelle
+            appointment.Status = AppointmentStatus.Missed;
+            await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Kayıt başarılı! Giriş yapabilirsiniz.";
-            return RedirectToAction("Login");
-        }
-
-        // -----------------------------------------------------
-        // LOGIN (GET)
-        // -----------------------------------------------------
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
-
-        // -----------------------------------------------------
-        // LOGIN (POST)
-        // -----------------------------------------------------
-        [HttpPost]
-        public IActionResult Login(string email, string password)
-        {
-            var doctor = _context.Doctors
-                .FirstOrDefault(d => d.Email == email && d.PasswordHash == password);
-
-            if (doctor == null)
-            {
-                ViewBag.Error = "Hatalı mail veya şifre!";
-                return View();
-            }
-
-            // Login başarılı → dashboard'a gönder
-            HttpContext.Session.SetString("DoctorId", doctor.Id.ToString());
-            return RedirectToAction("Dashboard");
-        }
-
-        // -----------------------------------------------------
-        // DASHBOARD
-        // -----------------------------------------------------
-        public IActionResult Dashboard()
-        {
-            string? id = HttpContext.Session.GetString("DoctorId");
-
-            if (id == null)
-                return RedirectToAction("Login");
-
-            var doctor = _context.Doctors.Find(int.Parse(id));
-
-            return View(doctor);
-        }
-
-        // -----------------------------------------------------
-        // LOGOUT
-        // -----------------------------------------------------
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            TempData["Success"] = "Hasta gelmedi olarak işaretlendi.";
+            return RedirectToAction("Index");
         }
     }
 }
