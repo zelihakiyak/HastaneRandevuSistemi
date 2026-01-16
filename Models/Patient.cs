@@ -12,7 +12,7 @@ namespace HastaneRandevuSistemi.Models
 
         [Required]
         [StringLength(11)]
-        public string IdentityNumber { get; set; } = string.Empty; // TC No
+        public string IdentityNumber { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;

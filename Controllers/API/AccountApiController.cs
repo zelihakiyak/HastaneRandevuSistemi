@@ -20,8 +20,7 @@ namespace HastaneRandevuSistemi.Controllers.API
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
-            // Not: API tarafında genellikle JWT Token dönülür. 
-            // Şimdilik MVC mantığındaki doğrulamayı simüle ediyoruz.
+
             return Ok(new { message = "Giriş başarılı (API test)" });
         }
     }

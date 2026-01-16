@@ -33,8 +33,6 @@ namespace HastaneRandevuSistemi.Controllers.API
         public async Task<IActionResult> GetPastAppointments(int doctorId)
         {
             var now = DateTime.Now;
-
-            // MVC tarafındaki mantığın aynısını uyguluyoruz:
             // Tarihi bugünden eski olanlar VEYA durumu aktif olmayanlar geçmiş randevudur.
             var appointments = await _context.Appointments
                 .Include(a => a.Patient)
@@ -47,7 +45,6 @@ namespace HastaneRandevuSistemi.Controllers.API
                     a.AppointmentDate,
                     a.AppointmentTime,
                     PatientName = a.Patient.FullName,
-                    // Akıllı durum bilgisini API'den doğrudan string olarak dönmek kolaylık sağlar
                     Status = (a.Status == AppointmentStatus.Completed || (a.Status == AppointmentStatus.Active && a.AppointmentDate < now.Date))
                              ? "Tamamlandı"
                              : (a.Status == AppointmentStatus.Cancelled ? "İptal Edildi" : "Gelmedi")

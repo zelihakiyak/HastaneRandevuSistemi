@@ -51,8 +51,6 @@ namespace HastaneRandevuSistemi.Services
                         DoctorName = $"Dr. {a.Doctor.FullName}",
                         DepartmentName = a.Doctor.Department?.Name ?? "Bölüm Belirtilmemiş",
 
-
-                        // Tasarımdaki Badge Renkleri ve Etiketleri
                         StatusLabel = a.Status switch
                         {
                             AppointmentStatus.Completed => "Tamamlandı",
@@ -107,7 +105,7 @@ namespace HastaneRandevuSistemi.Services
         // 3. YENİ RANDEVU OLUŞTURMA
         public async Task<(bool IsSuccess, string Message)> CreateAppointmentAsync(int doctorId, int patientId, DateTime date, TimeSpan time)
         {
-            // Mükerrer Kontrolü
+           
             bool isTaken = await _context.Appointments.AnyAsync(a =>
                 a.DoctorId == doctorId &&
                 a.AppointmentDate.Date == date.Date &&
@@ -131,7 +129,7 @@ namespace HastaneRandevuSistemi.Services
 
             return (true, "Randevu oluşturuldu.");
         }
-        // Tüm bölümleri getir
+        
         public async Task<List<string>> GetAllDepartmentNamesAsync()
         {
             return await _context.Departments
@@ -140,7 +138,6 @@ namespace HastaneRandevuSistemi.Services
                 .ToListAsync();
         }
 
-        // Bölüme göre doktorları filtrele
         public async Task<List<Doctor>> GetDoctorsByDepartmentNameAsync(string departmentName)
         {
             return await _context.Doctors
@@ -161,7 +158,7 @@ namespace HastaneRandevuSistemi.Services
             return true;
         }
 
-        // 5. TEK RANDEVU GETİR (Edit İçin)
+        // 5. TEK RANDEVU GETİR 
         public async Task<Appointment> GetAppointmentByIdAsync(int id)
         {
             return await _context.Appointments.FindAsync(id);

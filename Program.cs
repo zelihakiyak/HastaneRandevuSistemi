@@ -105,7 +105,6 @@ using (var scope = app.Services.CreateScope())
     // Seed işlemini başlat
     await DbSeeder.SeedAdminAsync(context);
 }
-
 app.Run();
 
-app.Run();
+

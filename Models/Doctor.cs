@@ -22,9 +22,9 @@ namespace HastaneRandevuSistemi.Models
         public string Phone { get; set; } = string.Empty;
 
         [Required]
-        public int DepartmentId { get; set; } // Foreign Key (Bölüm ID'si)
+        public int DepartmentId { get; set; }
 
-        public Department? Department { get; set; } // Navigation Property                                                   
+        public Department? Department { get; set; }                                                    
         public List<Appointment> Appointments { get; set; } = new();
     }
 }

@@ -49,24 +49,51 @@
             <div class="flex items-center gap-3">
                 @if (User.Identity.IsAuthenticated)
                 {
-                    <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
-                        <i class="bi bi-person-circle text-red-600"></i>
-                        <span class="text-sm font-bold text-gray-900">@User.Identity.Name</span>
-                    </div>
+                    @if (User.IsInRole("Patient"))
+                    {
+                        <div class="relative inline-block text-left" id="userMenuContainer">
+                            <button type="button" onclick="toggleUserMenu()" class="flex items-center gap-2 px-4 py-2 rounded-2xl hover:bg-gray-100 transition-all border border-gray-100 bg-white shadow-sm">
+                                <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-red-100">
+                                    @User.Identity.Name.Substring(0, 1).ToUpper()
+                                </div>
+                                <span class="text-sm font-bold text-gray-700">@User.Identity.Name</span>
+                                <i class="bi bi-chevron-down text-xs text-gray-400"></i>
+                            </button>
 
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="bg-red-50 text-red-600 px-4 py-2 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition text-sm">
-                            Çıkış
-                        </button>
-                    </form>
+                            <div id="userDropdown" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden">
+                                <div class="py-2">
+                                    <a asp-controller="Account" asp-action="ChangePassword" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors font-bold no-underline">
+                                        <i class="bi bi-gear-fill text-gray-400"></i>
+                                        Şifre Değiştir
+                                    </a>
+                                    <div class="border-t border-gray-50 my-1"></div>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors font-bold text-left border-none bg-transparent">
+                                            <i class="bi bi-box-arrow-left"></i>
+                                            Çıkış Yap
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
+                            <i class="bi bi-person-circle text-red-600"></i>
+                            <span class="text-sm font-bold text-gray-900">@User.Identity.Name</span>
+                        </div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="bg-red-50 text-red-600 px-4 py-2 rounded-2xl font-bold hover:bg-red-600 hover:text-white transition text-sm">Çıkış</button>
+                        </form>
+                    }
                 }
                 else
                 {
                     <a class="text-sm font-bold text-gray-600 hover:text-red-600 transition no-underline" asp-controller="Account" asp-action="Login">Giriş Yap</a>
-
-                    <a class="bg-red-600 text-white px-5 py-2 rounded-2xl font-bold hover:bg-red-700 transition text-sm shadow-lg shadow-red-100 no-underline"
-                       asp-controller="Account" asp-action="Register">Kayıt Ol</a>
+                    <a class="bg-red-600 text-white px-5 py-2 rounded-2xl font-bold hover:bg-red-700 transition text-sm shadow-lg shadow-red-100 no-underline" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
                 }
             </div>
         </nav>
@@ -110,7 +137,22 @@
                 });
             }
         });
+            function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            if(dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        }
+
+        // Menü dışına tıklandığında kapatma mantığı
+        window.addEventListener('click', function(e) {
+            const container = document.getElementById('userMenuContainer');
+            const dropdown = document.getElementById('userDropdown');
+            if (container && !container.contains(e.target)) {
+                if (dropdown) dropdown.classList.add('hidden');
+            }
+        });
     </script>
-    @await RenderSectionAsync("Scripts", required: false)
+    @await RenderSectionAsync("Scripts", required: false)  
 </body>
 </html>

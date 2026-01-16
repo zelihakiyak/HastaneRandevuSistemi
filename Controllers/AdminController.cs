@@ -13,12 +13,11 @@ namespace HastaneRandevuSistemi.Controllers
         // GET: Admin/AllAppointments
         public async Task<IActionResult> AllAppointments()
         {
-            // İlişkili tüm verileri (Hasta, Doktor ve Bölüm) tek seferde çekiyoruz
             var appointments = await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                     .ThenInclude(d => d.Department)
-                .OrderByDescending(a => a.AppointmentDate) // En yeni randevu en üstte
+                .OrderByDescending(a => a.AppointmentDate) 
                 .ThenByDescending(a => a.AppointmentTime)
                 .ToListAsync();
 

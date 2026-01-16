@@ -10,7 +10,6 @@ namespace HastaneRandevuSistemi.Models
         [Required(ErrorMessage = "Bölüm adı zorunludur.")]
         public string Name { get; set; } = string.Empty;
 
-        // Navigation Property: Bir bölümde birden fazla doktor olabilir.
         public List<Doctor> Doctors { get; set; } = new();
     }
 }

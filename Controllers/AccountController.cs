@@ -23,7 +23,7 @@ namespace HastaneRandevuSistemi.Controllers
         }
 
         // ============================================================
-        // === HASTA KAYIT (Sadece Hastalar Kendi Kayıt Olabilir) ===
+        // === HASTA KAYIT ===
         // ============================================================
 
         [HttpGet]
@@ -57,7 +57,6 @@ namespace HastaneRandevuSistemi.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            // Kullanıcı zaten giriş yapmışsa, rolüne göre "kendi dünyasına" gönder
             if (User.Identity.IsAuthenticated)
             {
                 return RedirectUserByRole();
@@ -72,11 +71,9 @@ namespace HastaneRandevuSistemi.Controllers
             if (!ModelState.IsValid) return View(model);
 
             // 1. ADIM: ADMIN KONTROLÜ 
-            // Veritabanındaki Admins tablosu sorgulanıyor.
             var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == model.Email);
             if (admin != null)
             {
-                // Veritabanındaki Hash'li şifre ile girilen şifreyi doğrula.
                 bool isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, admin.PasswordHash);
 
                 if (isPasswordValid)
@@ -87,7 +84,6 @@ namespace HastaneRandevuSistemi.Controllers
             }
 
             // 2. ADIM: DOKTOR KONTROLÜ
-            // Doktor veritabanı üzerinden doğrulanıyor.
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Email == model.Email);
             if (doctor != null)
             {
@@ -101,7 +97,6 @@ namespace HastaneRandevuSistemi.Controllers
             }
 
             // 3. ADIM: HASTA KONTROLÜ
-            // Hasta veritabanı üzerinden doğrulanıyor.
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.Email == model.Email);
             if (patient != null)
             {
@@ -114,7 +109,6 @@ namespace HastaneRandevuSistemi.Controllers
                 }
             }
 
-            // Hata Durumu
             ModelState.AddModelError("", "E-posta adresi veya şifre hatalı.");
             return View(model);
         }
@@ -159,5 +153,66 @@ namespace HastaneRandevuSistemi.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [Authorize]
+        public IActionResult ChangePassword() => View();
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            string? currentPasswordHash = null;
+            object? userEntity = null;
+
+            // 1. KULLANICIYI ROLÜNE GÖRE BUL
+            if (User.IsInRole("Admin"))
+            {
+                var admin = await _context.Admins.FindAsync(userId);
+                currentPasswordHash = admin?.PasswordHash;
+                userEntity = admin;
+            }
+            else if (User.IsInRole("Doctor"))
+            {
+                var doctor = await _context.Doctors.FindAsync(userId);
+                currentPasswordHash = doctor?.PasswordHash;
+                userEntity = doctor;
+            }
+            else if (User.IsInRole("Patient"))
+            {
+                var patient = await _context.Patients.FindAsync(userId);
+                currentPasswordHash = patient?.PasswordHash;
+                userEntity = patient;
+            }
+
+            // 2. MEVCUT ŞİFREYİ DOĞRULA
+            if (userEntity == null || string.IsNullOrEmpty(currentPasswordHash) ||
+                !BCrypt.Net.BCrypt.Verify(model.OldPassword, currentPasswordHash))
+            {
+                ModelState.AddModelError("OldPassword", "Mevcut şifreniz hatalı.");
+                return View(model);
+            }
+
+            // 3. YENİ ŞİFREYİ HASH'LE VE KAYDET
+            var newHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+
+            if (userEntity is Admin a) a.PasswordHash = newHash;
+            else if (userEntity is Doctor d) d.PasswordHash = newHash;
+            else if (userEntity is Patient p) p.PasswordHash = newHash;
+
+            await _context.SaveChangesAsync();
+          
+            TempData["SuccessMessage"] = "Şifreniz başarıyla güncellendi.";
+
+            if (User.IsInRole("Admin"))
+                return RedirectToAction("Index", "Admin");
+            else if (User.IsInRole("Doctor"))
+                return RedirectToAction("Index", "Doctor");
+            else
+                return RedirectToAction("Create", "Appointment"); // Hasta ise
+
+        }
     }
 }

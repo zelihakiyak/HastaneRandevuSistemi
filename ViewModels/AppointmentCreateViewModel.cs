@@ -16,5 +16,5 @@ public class AppointmentCreateViewModel
     public DateTime SelectedDate { get; set; } = DateTime.Today;
 
     [Required(ErrorMessage = "Lütfen saat seçiniz.")]
-    public string SelectedSlot { get; set; } // "09:00 AM" formatında
+    public string SelectedSlot { get; set; }
 }

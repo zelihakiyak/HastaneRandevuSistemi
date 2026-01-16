@@ -1,5 +1,5 @@
 ﻿using HastaneRandevuSistemi.Models;
-using HastaneRandevuSistemi.ViewModels; // ViewModel kullandığımızı varsayıyoruz
+using HastaneRandevuSistemi.ViewModels;
 
 namespace HastaneRandevuSistemi.Services
 {
@@ -31,7 +31,7 @@ namespace HastaneRandevuSistemi.Services
         Task<DoctorDashboardViewModel> GetDoctorScheduleAsync(int doctorId);
 
         Task<List<Appointment>> GetAllAppointmentsAsync();
-        // Servisinize bu mantıkta bir kontrol ekleyin veya Controller'da kullanın
+ 
         public bool IsDateAvailable(DateTime selectedDate)
         {
             var today = DateTime.Today;

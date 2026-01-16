@@ -9,7 +9,7 @@ namespace HastaneRandevuSistemi.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Randevu işlemleri için genel yetkilendirme
+    [Authorize] 
     public class AppointmentApiController(IAppointmentService _appointmentService) : ControllerBase
     {
         private int GetCurrentPatientId()
@@ -18,15 +18,28 @@ namespace HastaneRandevuSistemi.Controllers.API
             return string.IsNullOrEmpty(userIdString) ? 0 : int.Parse(userIdString);
         }
 
-        // 1. RANDEVULARIMI LİSTELE (GET)
-        [HttpGet("my-appointments")]
-        public async Task<IActionResult> GetMyAppointments()
+        // 1. HASTA ID'SİNE GÖRE RANDEVULARI LİSTELE (GET)
+        [HttpGet("my-appointments/{patientId}")]
+        public async Task<IActionResult> GetMyAppointments(int patientId) // Parametre eklendi
         {
-            int patientId = GetCurrentPatientId();
-            if (patientId == 0) return Unauthorized();
+            // Güvenlik Kontrolü (İsteğe bağlı): 
+            // Eğer sadece giriş yapan kullanıcı kendi randevusunu görsün istiyorsanız 
+            // burada bir yetki kontrolü yapabilirsiniz.
 
+            if (patientId <= 0)
+            {
+                return BadRequest("Geçerli bir hasta ID'si belirtilmelidir.");
+            }
+
+            // Servis katmanını kullanarak veritabanından randevuları getiriyoruz
             var appointments = await _appointmentService.GetPatientAppointmentsAsync(patientId);
-            return Ok(appointments);
+
+            if (appointments == null)
+            {
+                return NotFound($"{patientId} ID'li hastaya ait randevu bulunamadı.");
+            }
+
+            return Ok(appointments); // JSON formatında randevu listesini döner
         }
 
         // 2. TÜM BÖLÜMLERİ GETİR (GET)
